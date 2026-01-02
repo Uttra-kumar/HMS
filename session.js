@@ -60,5 +60,5 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem(SESSION_KEYS.EXPIRY_TIME);
     }
 
-}
+})
     
