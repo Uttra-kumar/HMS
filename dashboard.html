@@ -1540,7 +1540,7 @@
         // Clear session & local storage
         sessionStorage.clear();
         localStorage.clear();
-
+window.location.reload();
         // Redirect + prevent back button
         window.location.replace('index.html');
     }
@@ -1695,10 +1695,6 @@ window.addEventListener("pageshow", function (event) {
     });
         } 
     });
-    window.history.pushState(null, null, window.location.href);
-window.onpopstate = function () {
-    window.location.replace("index.html");
-};
             
     // Export functions for global access
     window.startEdit = startEdit;
