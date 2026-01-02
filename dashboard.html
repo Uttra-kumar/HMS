@@ -1533,18 +1533,13 @@
     }
     
     // Event Listeners
-    logoutBtn.addEventListener('click', function () {
-    if (confirm('Are you sure you want to logout?')) {
-
-        // Clear session & local storage
-        sessionStorage.clear();
-        localStorage.clear();
-
-        // Redirect + prevent back button
-        window.location.href = "index.html";
-        window.location.reload();
-    }
-});
+    logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
             
     
     applyFiltersBtn.addEventListener('click', function() {
