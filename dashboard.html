@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | PHM System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+    <!-- PDF Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- CSV Export Library -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header-left h1 {
+            color: #2c5364;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .time-date {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c5364;
+            margin-bottom: 8px;
+        }
+        
+        /* Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #203a43, #2c5364);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(32, 58, 67, 0.4);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(to right, #2c5364, #203a43);
+            box-shadow: 0 3px 10px rgba(44, 83, 100, 0.3);
+        }
+        
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-title {
+            font-size: 22px;
+            color: #2c5364;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .filter-input {
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .filter-input:focus {
+            border-color: #2c5364;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.1);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .filter-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-apply {
+            background: linear-gradient(to right, #2c5364, #203a43);
+            color: white;
+        }
+        
+        .btn-apply:hover {
+            background: linear-gradient(to right, #1a2d35, #243e49);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 83, 100, 0.4);
+        }
+        
+        .btn-reset {
+            background: #f0f0f0;
+            color: #555;
+        }
+        
+        .btn-reset:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .content-title {
+            font-size: 22px;
+            color: #2c5364;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .export-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-pdf {
+            background: linear-gradient(to right, #d32f2f, #b71c1c);
+            color: white;
+        }
+        
+        .btn-pdf:hover {
+            background: linear-gradient(to right, #c62828, #a41616);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);
+        }
+        
+        .btn-csv {
+            background: linear-gradient(to right, #388e3c, #2e7d32);
+            color: white;
+        }
+        
+        .btn-csv:hover {
+            background: linear-gradient(to right, #2e7d32, #1b5e20);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 142, 60, 0.4);
+        }
+        
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 25px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        .data-table th {
+            background: linear-gradient(to right, #203a43, #2c5364);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .data-table th:hover {
+            background: linear-gradient(to right, #1a2d35, #243e49);
+        }
+        
+        .data-table th.sorted-asc::after {
+            content: " ↑";
+            font-size: 12px;
+        }
+        
+        .data-table th.sorted-desc::after {
+            content: " ↓";
+            font-size: 12px;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .edit-btn:hover {
+            background: #bbdefb;
+            transform: scale(1.1);
+        }
+        
+        .delete-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .delete-btn:hover {
+            background: #ffcdd2;
+            transform: scale(1.1);
+        }
+        
+        /* Summary Section */
+        .summary-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border-left: 4px solid #2c5364;
+        }
+        
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .summary-title {
+            font-size: 20px;
+            color: #2c5364;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c5364;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2c5364;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .filter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-right {
+                text-align: center;
+            }
+            
+            .filter-header, .content-header, .summary-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .export-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-actions {
+                justify-content: center;
+            }
+            
+            .nav-btn, .filter-btn, .export-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header, .filter-section, .main-content {
+                padding: 20px 15px;
+            }
+            
+            .filter-title, .content-title, .summary-title {
+                font-size: 20px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+            
+            .time-date {
+                font-size: 16px;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Amount Styling */
+        .amount-cell {
+            font-weight: 600;
+            color: #2c5364;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            min-width: 40px;
+            height: 40px;
+            border: 2px solid #e1e1e1;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .page-btn.active {
+            background: linear-gradient(to right, #2c5364, #203a43);
+            color: white;
+            border-color: #2c5364;
+        }
+        
+        .page-btn:hover:not(.active) {
+            border-color: #2c5364;
+        }
+        
+        .page-info {
+            color: #666;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+        
+        /* Sort Options */
+        .sort-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .sort-btn {
+            padding: 8px 16px;
+            border: 2px solid #e1e1e1;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn:hover {
+            border-color: #2c5364;
+            color: #2c5364;
+        }
+        
+        .sort-btn.active {
+            background: linear-gradient(to right, #2c5364, #203a43);
+            color: white;
+            border-color: #2c5364;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-tachometer-alt"></i> PHM Dashboard</h1>
+                <p>Comprehensive management system with real-time filtering</p>
+            </div>
+            <div class="header-right">
+                <div class="time-date" id="currentDateTime">
+                    <!-- Real-time clock will be inserted here -->
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-btn active">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                    <button class="nav-btn" onclick="window.location.href='add-party.html'">
+                        <i class="fas fa-user-plus"></i> Add Party
+                    </button>
+                    <button class="nav-btn" onclick="window.location.href='makeEntry.html'">
+                        <i class="fas fa-file-invoice"></i> Make Entry
+                    </button>
+                    <button class="nav-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <i class="fas fa-filter"></i> Advanced Filters
+                </div>
+                <div class="filter-info">
+                    <span id="filterCount">0</span> filters applied
+                </div>
+            </div>
+            
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="billNoFilter"><i class="fas fa-file-alt"></i> Search by Bill No</label>
+                    <input type="text" id="billNoFilter" class="filter-input" 
+                           placeholder="Enter bill number...">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="partyFilter"><i class="fas fa-user-tag"></i> Search by Party Name</label>
+                    <select id="partyFilter" class="filter-input">
+                        <option value="">All Parties</option>
+                        <!-- Parties will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="dateFilter"><i class="fas fa-calendar-day"></i> Search by Date</label>
+                    <input type="date" id="dateFilter" class="filter-input">
+                </div>
+                
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-week"></i> Date Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" id="fromDate" class="filter-input" style="flex: 1;">
+                        <input type="date" id="toDate" class="filter-input" style="flex: 1;">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sort-options">
+                <button class="sort-btn" data-sort="date" data-direction="desc">
+                    <i class="fas fa-sort-amount-down"></i> Sort by Date
+                </button>
+                <button class="sort-btn" data-sort="bill_no" data-direction="asc">
+                    <i class="fas fa-sort-alpha-down"></i> Sort by Bill No
+                </button>
+                <button class="sort-btn" data-sort="bill_amount" data-direction="desc">
+                    <i class="fas fa-sort-numeric-down"></i> Sort by Amount
+                </button>
+            </div>
+            
+            <div class="filter-actions">
+                <button class="filter-btn btn-reset" id="resetFilters">
+                    <i class="fas fa-redo"></i> Reset Filters
+                </button>
+                <button class="filter-btn btn-apply" id="applyFilters">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="content-title">
+                    <i class="fas fa-table"></i> Entries Data
+                </div>
+                <div class="export-buttons">
+
+                    <button class="export-btn btn-csv" id="exportCsv">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="date">Bill Date</th>
+                            <th data-sort="bill_no">Bill No</th>
+                            <th data-sort="party_name">Party Name</th>
+                            <th data-sort="bill_amount">Amount</th>
+                            <th data-sort="software_no">Software No</th>
+                            <th data-sort="entry_date">Entry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Loading data...</p>
+            </div>
+            
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-database"></i>
+                <h3>No Data Found</h3>
+                <p>No entries match your current filters. Try adjusting your search criteria.</p>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <!-- Pagination will be generated here -->
+            </div>
+            
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <div class="summary-header">
+                    <div class="summary-title">
+                        <i class="fas fa-chart-bar"></i> Summary
+                    </div>
+                    <div class="total-info">
+                        <span id="totalRecords">0</span> records found
+                    </div>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <i class="fas fa-file-invoice-dollar"></i> Total Amount
+                        </div>
+                        <div class="stat-value" id="totalAmount">₹ 0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <i class="fas fa-list-ol"></i> Number of Entries
+                        </div>
+                        <div class="stat-value" id="numberOfEntries">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <script>
+    // Supabase Configuration
+    const supabaseUrl = 'https://iydamvrlxtwsnqvflaxq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5ZGFtdnJseHR3c25xdmZsYXhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwOTczMTIsImV4cCI6MjA3MzY3MzMxMn0.Z8m6XGyu9wsN_UJ8EZYr12BRemsO12_U8EEZ9JizQ6w';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Global Variables
+    let allEntries = [];
+    let filteredEntries = [];
+    let parties = [];
+    let currentPage = 1;
+    const itemsPerPage = 15;
+    let sortColumn = 'date';
+    let sortDirection = 'desc';
+    let activeFilters = {
+        billNo: '',
+        partyId: '',
+        date: '',
+        fromDate: '',
+        toDate: ''
+    };
+    let editingEntryId = null;
+    let originalEntryData = {};
+    
+    // DOM Elements
+    const currentDateTime = document.getElementById('currentDateTime');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const billNoFilter = document.getElementById('billNoFilter');
+    const partyFilter = document.getElementById('partyFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    const filterCount = document.getElementById('filterCount');
+    const tableBody = document.getElementById('tableBody');
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const pagination = document.getElementById('pagination');
+    const exportCsvBtn = document.getElementById('exportCsv');
+    const totalRecords = document.getElementById('totalRecords');
+    const totalAmount = document.getElementById('totalAmount');
+    const numberOfEntries = document.getElementById('numberOfEntries');
+    const sortButtons = document.querySelectorAll('.sort-btn');
+    
+    // CSS for editable inputs (add to existing CSS or inline)
+    const addEditableStyles = () => {
+        const style = document.createElement('style');
+        style.textContent = `
+            .editable-input {
+                width: 100%;
+                padding: 8px 12px;
+                border: 2px solid #e1e1e1;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: all 0.3s;
+                background: white;
+            }
+            
+            .editable-input:focus {
+                border-color: #2c5364;
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.1);
+            }
+            
+            .editable-select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 2px solid #e1e1e1;
+                border-radius: 6px;
+                font-size: 14px;
+                background: white;
+                appearance: none;
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c5364' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                background-size: 12px;
+                padding-right: 40px;
+            }
+            
+            .editable-select:focus {
+                border-color: #2c5364;
+                outline: none;
+            }
+            
+            /* Action Buttons */
+            .save-btn {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+            
+            .save-btn:hover {
+                background: #c8e6c9;
+                transform: scale(1.1);
+            }
+            
+            .cancel-btn {
+                background: #fff3e0;
+                color: #f57c00;
+            }
+            
+            .cancel-btn:hover {
+                background: #ffe0b2;
+                transform: scale(1.1);
+            }
+            
+            /* Validation Styles */
+            .error-input {
+                border-color: #d32f2f !important;
+                background: #fff5f5;
+            }
+        `;
+        document.head.appendChild(style);
+    };
+    
+    // Initialize real-time clock
+    function updateDateTime() {
+        const now = new Date();
+        const dateOptions = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        const timeOptions = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: true 
+        };
+        
+        const dateStr = now.toLocaleDateString('en-US', dateOptions);
+        const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+        
+        currentDateTime.innerHTML = `
+            <i class="far fa-calendar-alt"></i> ${dateStr}<br>
+            <i class="far fa-clock"></i> ${timeStr}
+        `;
+    }
+    
+    // Initialize date filters
+    function initializeDateFilters() {
+        const today = new Date().toISOString().split('T')[0];
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        
+        // Set default date range (last 30 days)
+        fromDate.value = oneMonthAgo.toISOString().split('T')[0];
+        toDate.value = today;
+        
+        // Set max date to today
+        dateFilter.max = today;
+        toDate.max = today;
+        
+        // Update active filters
+        activeFilters.fromDate = fromDate.value;
+        activeFilters.toDate = toDate.value;
+    }
+    
+    // Load parties for dropdown
+    async function loadParties() {
+        try {
+            const { data, error } = await supabase
+                .from('phmparty')
+                .select('id, party_name')
+                .order('party_name', { ascending: true });
+            
+            if (error) throw error;
+            
+            parties = data || [];
+            
+            // Clear existing options except the first one
+            while (partyFilter.options.length > 1) {
+                partyFilter.remove(1);
+            }
+            
+            // Add party options
+            parties.forEach(party => {
+                const option = document.createElement('option');
+                option.value = party.id;
+                option.textContent = party.party_name;
+                partyFilter.appendChild(option);
+            });
+            
+        } catch (error) {
+            console.error('Error loading parties:', error);
+        }
+    }
+    
+    // Load all entries
+    async function loadEntries() {
+        try {
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            tableBody.innerHTML = '';
+            
+            const { data, error } = await supabase
+                .from('phmentry')
+                .select(`
+                    *,
+                    phmparty:party_id (party_name)
+                `)
+                .order('date', { ascending: false });
+            
+            if (error) throw error;
+            
+            allEntries = data || [];
+            filteredEntries = [...allEntries];
+            
+            // Apply any existing filters
+            applyFilters();
+            
+            // Update summary
+            updateSummary();
+            
+        } catch (error) {
+            console.error('Error loading entries:', error);
+            showError('Failed to load entries');
+            allEntries = [];
+            filteredEntries = [];
+        } finally {
+            loadingState.style.display = 'none';
+        }
+    }
+    
+    // Apply filters function
+    function applyFilters() {
+        filteredEntries = allEntries.filter(entry => {
+            // Filter by bill number
+            if (activeFilters.billNo && 
+                !entry.bill_no?.toLowerCase().includes(activeFilters.billNo.toLowerCase())) {
+                return false;
+            }
+            
+            // Filter by party ID
+            if (activeFilters.partyId && entry.party_id !== activeFilters.partyId) {
+                return false;
+            }
+            
+            // Filter by specific date
+            if (activeFilters.date && entry.date !== activeFilters.date) {
+                return false;
+            }
+            
+            // Filter by date range
+            if (activeFilters.fromDate && entry.date < activeFilters.fromDate) {
+                return false;
+            }
+            
+            if (activeFilters.toDate && entry.date > activeFilters.toDate) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort entries
+        sortEntries();
+        
+        // Update UI
+        displayEntries();
+        updatePagination();
+        updateSummary();
+        
+        // Update filter count
+        updateFilterCount();
+    }
+    
+    // Sort entries
+    function sortEntries() {
+        filteredEntries.sort((a, b) => {
+            let valueA, valueB;
+            
+            switch (sortColumn) {
+                case 'date':
+                    valueA = new Date(a.date);
+                    valueB = new Date(b.date);
+                    break;
+                case 'bill_amount':
+                    valueA = parseFloat(a.bill_amount || 0);
+                    valueB = parseFloat(b.bill_amount || 0);
+                    break;
+                case 'party_name':
+                    valueA = a.phmparty?.party_name || '';
+                    valueB = b.phmparty?.party_name || '';
+                    break;
+                case 'bill_no':
+                    valueA = a.bill_no || '';
+                    valueB = b.bill_no || '';
+                    break;
+                case 'software_no':
+                    valueA = a.software_no || '';
+                    valueB = b.software_no || '';
+                    break;
+                case 'entry_date':
+                    valueA = new Date(a.entry_date);
+                    valueB = new Date(b.entry_date);
+                    break;
+                default:
+                    valueA = a[sortColumn] || '';
+                    valueB = b[sortColumn] || '';
+            }
+            
+            if (sortDirection === 'asc') {
+                return valueA > valueB ? 1 : -1;
+            } else {
+                return valueA < valueB ? 1 : -1;
+            }
+        });
+    }
+    
+    // Display entries in table with inline editing
+    function displayEntries() {
+        if (filteredEntries.length === 0) {
+            emptyState.style.display = 'block';
+            tableBody.innerHTML = '';
+            pagination.style.display = 'none';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageEntries = filteredEntries.slice(startIndex, endIndex);
+        
+        // Generate table rows
+        let html = '';
+        pageEntries.forEach((entry, index) => {
+            const rowNum = startIndex + index + 1;
+            const isEditing = editingEntryId === entry.id;
+            const partyOptions = parties.map(party => 
+                `<option value="${party.id}" ${entry.party_id === party.id ? 'selected' : ''}>${escapeHtml(party.party_name)}</option>`
+            ).join('');
+            
+            html += `
+                <tr data-entry-id="${entry.id}">
+                    <td>
+                        ${isEditing ? 
+                            `<input type="date" class="editable-input" value="${entry.date || ''}" 
+                                   data-field="date" max="${new Date().toISOString().split('T')[0]}">` : 
+                            formatDate(entry.date)}
+                    </td>
+                    <td>
+                        ${isEditing ? 
+                            `<input type="text" class="editable-input" value="${escapeHtml(entry.bill_no || '')}" 
+                                   data-field="bill_no" maxlength="50">` : 
+                            `<strong>${escapeHtml(entry.bill_no || '')}</strong>`}
+                    </td>
+                    <td>
+                        ${isEditing ? 
+                            `<select class="editable-select" data-field="party_id">
+                                <option value="">Select Party</option>
+                                ${partyOptions}
+                            </select>` : 
+                            escapeHtml(entry.phmparty?.party_name || 'N/A')}
+                    </td>
+                    <td class="amount-cell">
+                        ${isEditing ? 
+                            `<input type="number" class="editable-input" value="${parseFloat(entry.bill_amount || 0).toFixed(2)}" 
+                                   data-field="bill_amount" min="0" step="0.01">` : 
+                            `₹ ${parseFloat(entry.bill_amount || 0).toFixed(2)}`}
+                    </td>
+                    <td>
+                        ${isEditing ? 
+                            `<input type="text" class="editable-input" value="${escapeHtml(entry.software_no || '')}" 
+                                   data-field="software_no" maxlength="50">` : 
+                            escapeHtml(entry.software_no || '')}
+                    </td>
+                    <td>
+                        ${formatDate(entry.entry_date)}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            ${isEditing ? 
+                                `<button class="action-btn save-btn" onclick="saveEntry('${entry.id}')" 
+                                        title="Save Changes">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <button class="action-btn cancel-btn" onclick="cancelEdit('${entry.id}')" 
+                                        title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </button>` : 
+                                `<button class="action-btn edit-btn" onclick="startEdit('${entry.id}')" 
+                                        title="Edit Entry">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteEntry('${entry.id}')" 
+                                        title="Delete Entry">
+                                    <i class="fas fa-trash"></i>
+                                </button>`}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tableBody.innerHTML = html;
+        
+        // Update sort indicators
+        updateSortIndicators();
+    }
+    
+    // Update sort indicators in table headers
+    function updateSortIndicators() {
+        const headers = document.querySelectorAll('.data-table th');
+        headers.forEach(header => {
+            header.classList.remove('sorted-asc', 'sorted-desc');
+            if (header.dataset.sort === sortColumn) {
+                header.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+        });
+        
+        // Update sort buttons
+        sortButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.sort === sortColumn) {
+                btn.classList.add('active');
+                // Update button icon based on direction
+                const icon = btn.querySelector('i');
+                if (sortDirection === 'asc') {
+                    icon.className = sortColumn === 'date' ? 'fas fa-sort-amount-up' : 
+                                     sortColumn === 'bill_no' ? 'fas fa-sort-alpha-up' : 
+                                     'fas fa-sort-numeric-up';
+                } else {
+                    icon.className = sortColumn === 'date' ? 'fas fa-sort-amount-down' : 
+                                     sortColumn === 'bill_no' ? 'fas fa-sort-alpha-down' : 
+                                     'fas fa-sort-numeric-down';
+                }
+            }
+        });
+    }
+    
+    // Start editing an entry
+    function startEdit(entryId) {
+        const entry = filteredEntries.find(e => e.id === entryId);
+        if (!entry) return;
+        
+        // Save original data
+        originalEntryData[entryId] = {
+            date: entry.date,
+            bill_no: entry.bill_no,
+            party_id: entry.party_id,
+            bill_amount: entry.bill_amount,
+            software_no: entry.software_no
+        };
+        
+        // Set editing mode
+        editingEntryId = entryId;
+        
+        // Re-render table
+        displayEntries();
+    }
+    
+    // Save entry changes
+    async function saveEntry(entryId) {
+        const row = document.querySelector(`tr[data-entry-id="${entryId}"]`);
+        if (!row) return;
+        
+        // Get updated values
+        const dateInput = row.querySelector('input[data-field="date"]');
+        const billNoInput = row.querySelector('input[data-field="bill_no"]');
+        const partySelect = row.querySelector('select[data-field="party_id"]');
+        const amountInput = row.querySelector('input[data-field="bill_amount"]');
+        const softwareInput = row.querySelector('input[data-field="software_no"]');
+        
+        const updatedData = {
+            date: dateInput ? dateInput.value : '',
+            bill_no: billNoInput ? billNoInput.value.trim() : '',
+            party_id: partySelect ? partySelect.value : '',
+            bill_amount: amountInput ? parseFloat(amountInput.value).toFixed(2) : '0.00',
+            software_no: softwareInput ? softwareInput.value.trim() : '',
+            updated_at: new Date().toISOString()
+        };
+        
+        // Validation
+        if (!updatedData.date) {
+            alert('Bill date is required');
+            if (dateInput) dateInput.classList.add('error-input');
+            return;
+        }
+        
+        if (!updatedData.bill_no) {
+            alert('Bill number is required');
+            if (billNoInput) billNoInput.classList.add('error-input');
+            return;
+        }
+        
+        if (!updatedData.party_id) {
+            alert('Party is required');
+            if (partySelect) partySelect.classList.add('error-input');
+            return;
+        }
+        
+        if (!updatedData.bill_amount || parseFloat(updatedData.bill_amount) <= 0) {
+            alert('Valid bill amount is required');
+            if (amountInput) amountInput.classList.add('error-input');
+            return;
+        }
+        
+        if (!updatedData.software_no) {
+            alert('Software number is required');
+            if (softwareInput) softwareInput.classList.add('error-input');
+            return;
+        }
+        
+        try {
+            const { error } = await supabase
+                .from('phmentry')
+                .update(updatedData)
+                .eq('id', entryId);
+            
+            if (error) throw error;
+            
+            // Update local data
+            const entryIndex = filteredEntries.findIndex(e => e.id === entryId);
+            if (entryIndex !== -1) {
+                filteredEntries[entryIndex] = { ...filteredEntries[entryIndex], ...updatedData };
+                
+                // Also update in allEntries for consistency
+                const allEntriesIndex = allEntries.findIndex(e => e.id === entryId);
+                if (allEntriesIndex !== -1) {
+                    allEntries[allEntriesIndex] = { ...allEntries[allEntriesIndex], ...updatedData };
+                }
+            }
+            
+            // Exit edit mode
+            editingEntryId = null;
+            delete originalEntryData[entryId];
+            
+            // Re-render table
+            displayEntries();
+            
+            // Update summary
+            updateSummary();
+            
+            alert('Entry updated successfully!');
+            
+        } catch (error) {
+            console.error('Error updating entry:', error);
+            alert('Failed to update entry. Bill number may already exist.');
+        }
+    }
+    
+    // Cancel editing
+    function cancelEdit(entryId) {
+        // Restore original data
+        if (originalEntryData[entryId]) {
+            const entryIndex = filteredEntries.findIndex(e => e.id === entryId);
+            if (entryIndex !== -1) {
+                filteredEntries[entryIndex] = {
+                    ...filteredEntries[entryIndex],
+                    ...originalEntryData[entryId]
+                };
+            }
+        }
+        
+        // Exit edit mode
+        editingEntryId = null;
+        delete originalEntryData[entryId];
+        
+        // Re-render table
+        displayEntries();
+    }
+    
+    // Delete entry function
+    async function deleteEntry(id) {
+        if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const { error } = await supabase
+                .from('phmentry')
+                .delete()
+                .eq('id', id);
+            
+            if (error) throw error;
+            
+            // Remove from local arrays
+            allEntries = allEntries.filter(e => e.id !== id);
+            filteredEntries = filteredEntries.filter(e => e.id !== id);
+            
+            // Update UI
+            displayEntries();
+            updatePagination();
+            updateSummary();
+            
+            alert('Entry deleted successfully!');
+            
+        } catch (error) {
+            console.error('Error deleting entry:', error);
+            alert('Failed to delete entry');
+        }
+    }
+    
+    // Update pagination
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+        
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+        
+        let paginationHtml = '';
+        
+        // Previous button
+        if (currentPage > 1) {
+            paginationHtml += `
+                <button class="page-btn" onclick="changePage(${currentPage - 1})" title="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+        }
+        
+        // First page
+        paginationHtml += `
+            <button class="page-btn ${currentPage === 1 ? 'active' : ''}" onclick="changePage(1)">
+                1
+            </button>
+        `;
+        
+        // Middle pages
+        let startPage = Math.max(2, currentPage - 2);
+        let endPage = Math.min(totalPages - 1, currentPage + 2);
+        
+        if (startPage > 2) {
+            paginationHtml += `<span class="page-info">...</span>`;
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHtml += `
+                <button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">
+                    ${i}
+                </button>
+            `;
+        }
+        
+        if (endPage < totalPages - 1) {
+            paginationHtml += `<span class="page-info">...</span>`;
+        }
+        
+        // Last page
+        if (totalPages > 1) {
+            paginationHtml += `
+                <button class="page-btn ${currentPage === totalPages ? 'active' : ''}" onclick="changePage(${totalPages})">
+                    ${totalPages}
+                </button>
+            `;
+        }
+        
+        // Next button
+        if (currentPage < totalPages) {
+            paginationHtml += `
+                <button class="page-btn" onclick="changePage(${currentPage + 1})" title="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
+        
+        // Page info
+        paginationHtml += `
+            <span class="page-info">
+                Page ${currentPage} of ${totalPages} (${filteredEntries.length} entries)
+            </span>
+        `;
+        
+        pagination.innerHTML = paginationHtml;
+        pagination.style.display = 'flex';
+    }
+    
+    // Change page function
+    function changePage(page) {
+        currentPage = page;
+        displayEntries();
+        // Scroll to top of table
+        document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Update summary statistics
+    function updateSummary() {
+        totalRecords.textContent = filteredEntries.length;
+        numberOfEntries.textContent = filteredEntries.length;
+        
+        // Calculate total amount
+        const total = filteredEntries.reduce((sum, entry) => {
+            return sum + parseFloat(entry.bill_amount || 0);
+        }, 0);
+        totalAmount.textContent = `₹ ${total.toFixed(2)}`;
+    }
+    
+    // Update filter count
+    function updateFilterCount() {
+        let count = 0;
+        Object.values(activeFilters).forEach(filter => {
+            if (filter) count++;
+        });
+        filterCount.textContent = count;
+    }
+    
+    // Export to CSV
+    function exportToCSV() {
+        try {
+            // Prepare CSV data
+            const csvData = filteredEntries.map((entry, index) => ({
+                'S.No': index + 1,
+                'Bill Date': formatDate(entry.date),
+                'Bill No': entry.bill_no || '',
+                'Party Name': entry.phmparty?.party_name || 'N/A',
+                'Amount': `${parseFloat(entry.bill_amount || 0).toFixed(2)}`,
+                'Software No': entry.software_no || '',
+                'Entry Date': formatDate(entry.entry_date)
+            }));
+            
+            // Convert to CSV
+            const csv = Papa.unparse(csvData);
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `phm-entries-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+        } catch (error) {
+            console.error('Error exporting CSV:', error);
+            alert('Failed to export CSV. Please try again.');
+        }
+    }
+    
+    // Helper functions
+    function showError(message) {
+        alert(message);
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric',
+            month: 'short', 
+            day: 'numeric'
+        });
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Event Listeners
+    logoutBtn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    });
+    
+    applyFiltersBtn.addEventListener('click', function() {
+        // Get filter values
+        activeFilters.billNo = billNoFilter.value.trim();
+        activeFilters.partyId = partyFilter.value;
+        activeFilters.date = dateFilter.value;
+        activeFilters.fromDate = fromDate.value;
+        activeFilters.toDate = toDate.value;
+        
+        // Reset to page 1
+        currentPage = 1;
+        
+        // Apply filters
+        applyFilters();
+    });
+    
+    resetFiltersBtn.addEventListener('click', function() {
+        // Reset filter inputs
+        billNoFilter.value = '';
+        partyFilter.value = '';
+        dateFilter.value = '';
+        initializeDateFilters();
+        
+        // Reset active filters
+        activeFilters = {
+            billNo: '',
+            partyId: '',
+            date: '',
+            fromDate: fromDate.value,
+            toDate: toDate.value
+        };
+        
+        // Reset to page 1
+        currentPage = 1;
+        
+        // Apply filters
+        applyFilters();
+    });
+    
+    // Real-time search for bill number
+    let billNoTimeout;
+    billNoFilter.addEventListener('input', function() {
+        clearTimeout(billNoTimeout);
+        billNoTimeout = setTimeout(() => {
+            activeFilters.billNo = this.value.trim();
+            currentPage = 1;
+            applyFilters();
+        }, 500);
+    });
+    
+    // Real-time search for party
+    partyFilter.addEventListener('change', function() {
+        activeFilters.partyId = this.value;
+        currentPage = 1;
+        applyFilters();
+    });
+    
+    // Real-time search for date
+    dateFilter.addEventListener('change', function() {
+        activeFilters.date = this.value;
+        currentPage = 1;
+        applyFilters();
+    });
+    
+    // Date range real-time filtering
+    let dateRangeTimeout;
+    [fromDate, toDate].forEach(input => {
+        input.addEventListener('change', function() {
+            clearTimeout(dateRangeTimeout);
+            dateRangeTimeout = setTimeout(() => {
+                activeFilters.fromDate = fromDate.value;
+                activeFilters.toDate = toDate.value;
+                currentPage = 1;
+                applyFilters();
+            }, 500);
+        });
+    });
+    
+    // Table sorting
+    document.querySelectorAll('.data-table th[data-sort]').forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.sort;
+            
+            if (sortColumn === column) {
+                // Toggle direction if same column
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                // New column, default to descending
+                sortColumn = column;
+                sortDirection = 'desc';
+            }
+            
+            sortEntries();
+            displayEntries();
+        });
+    });
+    
+    // Sort buttons
+    sortButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            sortColumn = this.dataset.sort;
+            sortDirection = this.dataset.direction;
+            
+            // Toggle direction if same button clicked again
+            if (this.classList.contains('active')) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                this.dataset.direction = sortDirection;
+            }
+            
+            sortEntries();
+            displayEntries();
+        });
+    });
+    
+    // Export buttons
+    exportCsvBtn.addEventListener('click', exportToCSV);
+    
+    // Initialize
+    window.addEventListener('DOMContentLoaded', function() {
+        // Add editable styles
+        addEditableStyles();
+        
+        // Update clock immediately and every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // Initialize date filters
+        initializeDateFilters();
+        
+        // Load data
+        loadParties();
+        loadEntries();
+        
+        // Check login (optional)
+        const isLoggedIn = sessionStorage.getItem('phm_admin');
+         if (!isLoggedIn) {
+            alert('Please login first');
+            window.location.href = 'index.html';
+            return;
+        } 
+    });
+    
+    // Export functions for global access
+    window.startEdit = startEdit;
+    window.saveEntry = saveEntry;
+    window.cancelEdit = cancelEdit;
+    window.deleteEntry = deleteEntry;
+    window.changePage = changePage;
+
+    </script>
+</body>
+</html>

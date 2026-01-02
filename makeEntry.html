@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Entry | PHM System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header-left h1 {
+            color: #1e3c72;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .time-date {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+        
+        /* Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(to right, #2a5298, #1e3c72);
+            box-shadow: 0 3px 10px rgba(30, 60, 114, 0.3);
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+        
+        .card-title {
+            font-size: 22px;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            color: #2a5298;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+        
+        .form-control:focus {
+            border-color: #2a5298;
+            outline: none;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+        
+        .form-control[readonly] {
+            background-color: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3c72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+            padding-right: 45px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #17335c, #21447a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        /* Entries List Card */
+        .list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .today-info {
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .entries-table th {
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .entries-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+        
+        .entries-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+        
+        .entries-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .entries-table tr:hover {
+            background-color: #f5f7ff;
+        }
+        
+        .entries-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .edit-btn:hover {
+            background: #bbdefb;
+            transform: scale(1.1);
+        }
+        
+        .delete-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .delete-btn:hover {
+            background: #ffcdd2;
+            transform: scale(1.1);
+        }
+        
+        /* Messages */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #e8f7ef;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+        
+        .alert-error {
+            background-color: #ffeaea;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-right {
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .list-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header, .form-card, .list-card {
+                padding: 20px 15px;
+            }
+            
+            .card-title {
+                font-size: 20px;
+            }
+            
+            .entries-table th,
+            .entries-table td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+            
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            .time-date {
+                font-size: 16px;
+            }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+        
+        /* Amount Styling */
+        .amount-cell {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        /* Today's Total */
+        .today-total {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+        
+        .today-total h4 {
+            color: #2e7d32;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .today-total .amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+        
+        /* Form Field Info */
+        .field-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-file-invoice"></i> Make Entry</h1>
+                <p>Record new bills and manage today's entries</p>
+            </div>
+            <div class="header-right">
+                <div class="time-date" id="currentDateTime">
+                    <!-- Real-time clock will be inserted here -->
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-btn" onclick="window.location.href='dashboard.html'">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                    <button class="nav-btn" onclick="window.location.href='addParty.html'">
+                        <i class="fas fa-user-plus"></i> Add Party
+                    </button>
+                    <button class="nav-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Entry Form -->
+            <div class="form-card">
+                <h2 class="card-title">
+                    <i class="fas fa-plus-circle"></i> New Bill Entry
+                </h2>
+                
+                <div class="alert alert-success" id="successAlert">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="successMessage">Entry saved successfully!</span>
+                </div>
+                
+                <div class="alert alert-error" id="errorAlert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="errorMessage">Error occurred. Please try again.</span>
+                </div>
+                
+                <form id="entryForm">
+                    <input type="hidden" id="entryId" value="">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dateField"><i class="fas fa-calendar-day"></i> Date *</label>
+                            <input type="date" id="dateField" class="form-control" required>
+                            <div class="field-info">
+                                <i class="fas fa-info-circle"></i> Bill date (select manually)
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="billNo"><i class="fas fa-file-alt"></i> Bill No *</label>
+                            <input type="text" id="billNo" class="form-control" 
+                                   placeholder="Enter bill number" required maxlength="50">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="partyId"><i class="fas fa-user-tag"></i> Party Name *</label>
+                        <select id="partyId" class="form-control" required>
+                            <option value="">Select Party</option>
+                            <!-- Parties will be loaded dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="billAmount"><i class="fas fa-rupee-sign"></i> Bill Amount *</label>
+                            <input type="number" id="billAmount" class="form-control" 
+                                   placeholder="0.00" min="0" step="0.01" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="softwareNo"><i class="fas fa-laptop-code"></i> Software No *</label>
+                            <input type="text" id="softwareNo" class="form-control" 
+                                   placeholder="Enter software number" required maxlength="50">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="entryDate"><i class="fas fa-calendar-plus"></i> Entry Date *</label>
+                        <input type="date" id="entryDate" class="form-control" required readonly>
+                        <div class="field-info">
+                            <i class="fas fa-info-circle"></i> Auto-filled with today's date
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i> <span id="submitText">Save Entry</span>
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="resetBtn">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Today's Entries List -->
+            <div class="list-card">
+                <div class="list-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list-alt"></i> Today's Entries
+                    </h2>
+                    <div class="today-info">
+                        <i class="fas fa-calendar-check"></i> Today: <span id="todayDate"></span>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="15%">Date</th>
+                                <th width="15%">Bill No</th>
+                                <th width="20%">Party</th>
+                                <th width="15%">Amount</th>
+                                <th width="15%">Software No</th>
+                                <th width="15%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entriesTableBody">
+                            <!-- Today's entries will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-file-invoice"></i>
+                    <h3>No Entries for Today</h3>
+                    <p>Start by adding your first entry using the form on the left.</p>
+                </div>
+                
+                <!-- Today's Total -->
+                <div class="today-total" id="todayTotal" style="display: none;">
+                    <h4><i class="fas fa-calculator"></i> Today's Total Bill Amount</h4>
+                    <div class="amount">₹ <span id="totalAmount">0.00</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://iydamvrlxtwsnqvflaxq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5ZGFtdnJseHR3c25xdmZsYXhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwOTczMTIsImV4cCI6MjA3MzY3MzMxMn0.Z8m6XGyu9wsN_UJ8EZYr12BRemsO12_U8EEZ9JizQ6w';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // DOM Elements
+        const currentDateTime = document.getElementById('currentDateTime');
+        const todayDate = document.getElementById('todayDate');
+        const entryForm = document.getElementById('entryForm');
+        const entryId = document.getElementById('entryId');
+        const dateField = document.getElementById('dateField');
+        const billNo = document.getElementById('billNo');
+        const partyId = document.getElementById('partyId');
+        const billAmount = document.getElementById('billAmount');
+        const softwareNo = document.getElementById('softwareNo');
+        const entryDate = document.getElementById('entryDate');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resetBtn = document.getElementById('resetBtn');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const entriesTableBody = document.getElementById('entriesTableBody');
+        const totalAmount = document.getElementById('totalAmount');
+        const todayTotal = document.getElementById('todayTotal');
+        const emptyState = document.getElementById('emptyState');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // State variables
+        let parties = [];
+        let todayEntries = [];
+        let today = new Date().toISOString().split('T')[0];
+        
+        // Initialize real-time clock
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            };
+            
+            const dateStr = now.toLocaleDateString('en-US', dateOptions);
+            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+            
+            currentDateTime.innerHTML = `
+                <i class="far fa-calendar-alt"></i> ${dateStr}<br>
+                <i class="far fa-clock"></i> ${timeStr}
+            `;
+        }
+        
+        // Initialize form with default dates
+        function initializeForm() {
+            // Set today's date as default for entryDate (readonly)
+            const today = new Date().toISOString().split('T')[0];
+            entryDate.value = today;
+            entryDate.readOnly = true;
+            
+            // Set default date for dateField (manual entry)
+            dateField.value = today;
+            
+            // Set max date to today for dateField
+            dateField.max = today;
+            
+            // Display today's date in the info box
+            const formattedToday = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            todayDate.textContent = formattedToday;
+        }
+        
+        // Load parties for dropdown
+        async function loadParties() {
+            try {
+                const { data, error } = await supabase
+                    .from('phmparty')
+                    .select('id, party_name')
+                    .order('party_name', { ascending: true });
+                
+                if (error) throw error;
+                
+                parties = data || [];
+                
+                // Clear existing options except the first one
+                const partySelect = document.getElementById('partyId');
+                while (partySelect.options.length > 1) {
+                    partySelect.remove(1);
+                }
+                
+                // Add party options
+                parties.forEach(party => {
+                    const option = document.createElement('option');
+                    option.value = party.id;
+                    option.textContent = party.party_name;
+                    partySelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading parties:', error);
+                showError('Failed to load party list');
+            }
+        }
+        
+        // Load today's entries
+        // Updated code for loadTodayEntries function
+async function loadTodayEntries() {
+    try {
+        // Pehle entries load karein
+        const { data: entries, error: entriesError } = await supabase
+            .from('phmentry')
+            .select('*')
+            .eq('entry_date', today)
+            .order('created_at', { ascending: false });
+        
+        if (entriesError) throw entriesError;
+        
+        // Phir parties load karein
+        const { data: allParties, error: partiesError } = await supabase
+            .from('phmparty')
+            .select('id, party_name');
+        
+        if (partiesError) throw partiesError;
+        
+        // Manually join data
+        todayEntries = entries.map(entry => {
+            const party = allParties.find(p => p.id === entry.party_id);
+            return {
+                ...entry,
+                phmparty: party ? { party_name: party.party_name } : null
+            };
+        });
+        
+        displayEntries();
+        calculateTodayTotal();
+        
+    } catch (error) {
+        console.error('Error loading entries:', error);
+        showError('Failed to load today\'s entries');
+        todayEntries = [];
+        displayEntries();
+    }
+}
+        // Display entries in table
+        function displayEntries() {
+            if (todayEntries.length === 0) {
+                emptyState.style.display = 'block';
+                entriesTableBody.innerHTML = '';
+                todayTotal.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            todayEntries.forEach((entry, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${formatDate(entry.date)}</td>
+                        <td>${escapeHtml(entry.bill_no || '')}</td>
+                        <td>${escapeHtml(entry.phmparty?.party_name || 'N/A')}</td>
+                        <td class="amount-cell">₹ ${parseFloat(entry.bill_amount || 0).toFixed(2)}</td>
+                        <td>${escapeHtml(entry.software_no || '')}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit-btn" onclick="editEntry('${entry.id}')" 
+                                        title="Edit Entry">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteEntry('${entry.id}')" 
+                                        title="Delete Entry">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            entriesTableBody.innerHTML = html;
+            todayTotal.style.display = 'block';
+        }
+        
+        // Calculate today's total amount
+        function calculateTodayTotal() {
+            const total = todayEntries.reduce((sum, entry) => {
+                return sum + parseFloat(entry.bill_amount || 0);
+            }, 0);
+            
+            totalAmount.textContent = total.toFixed(2);
+        }
+        
+        // Form submission handler
+        entryForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validation
+            if (!dateField.value) {
+                showError('Please select a date');
+                dateField.focus();
+                return;
+            }
+            
+            if (!billNo.value.trim()) {
+                showError('Please enter bill number');
+                billNo.focus();
+                return;
+            }
+            
+            if (!partyId.value) {
+                showError('Please select a party');
+                partyId.focus();
+                return;
+            }
+            
+            if (!billAmount.value || parseFloat(billAmount.value) <= 0) {
+                showError('Please enter a valid bill amount');
+                billAmount.focus();
+                return;
+            }
+            
+            if (!softwareNo.value.trim()) {
+                showError('Please enter software number');
+                softwareNo.focus();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = entryId.value ? 'Updating...' : 'Saving...';
+            loadingSpinner.style.display = 'block';
+            hideAlerts();
+            
+            try {
+                const entryData = {
+                    date: dateField.value,
+                    bill_no: billNo.value.trim(),
+                    party_id: partyId.value,
+                    bill_amount: parseFloat(billAmount.value).toFixed(2),
+                    software_no: softwareNo.value.trim(),
+                    entry_date: entryDate.value,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                if (entryId.value) {
+                    // Update existing entry
+                    const { error } = await supabase
+                        .from('phmentry')
+                        .update(entryData)
+                        .eq('id', entryId.value);
+                    
+                    if (error) throw error;
+                    
+                    showSuccess('Entry updated successfully!');
+                } else {
+                    // Insert new entry
+                    const { error } = await supabase
+                        .from('phmentry')
+                        .insert([entryData]);
+                    
+                    if (error) throw error;
+                    
+                    showSuccess('Entry saved successfully!');
+                }
+                
+                // Reset form and reload entries
+                resetForm();
+                loadTodayEntries();
+                
+            } catch (error) {
+                console.error('Error saving entry:', error);
+                showError(entryId.value ? 'Failed to update entry' : 'Failed to save entry');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = entryId.value ? 'Update Entry' : 'Save Entry';
+                loadingSpinner.style.display = 'none';
+            }
+        });
+        
+        // Edit entry function
+        async function editEntry(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('phmentry')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    // Fill form with entry data
+                    entryId.value = data.id;
+                    dateField.value = data.date;
+                    billNo.value = data.bill_no || '';
+                    partyId.value = data.party_id || '';
+                    billAmount.value = data.bill_amount || '';
+                    softwareNo.value = data.software_no || '';
+                    
+                    // Update button text
+                    submitText.textContent = 'Update Entry';
+                    
+                    // Scroll to form
+                    dateField.focus();
+                    
+                    showSuccess('Entry loaded for editing');
+                }
+            } catch (error) {
+                console.error('Error loading entry for edit:', error);
+                showError('Failed to load entry details');
+            }
+        }
+        
+        // Delete entry function
+        async function deleteEntry(id) {
+            if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('phmentry')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showSuccess('Entry deleted successfully!');
+                loadTodayEntries();
+                
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                showError('Failed to delete entry');
+            }
+        }
+        
+        // Reset form function
+        function resetForm() {
+            entryId.value = '';
+            entryForm.reset();
+            submitText.textContent = 'Save Entry';
+            hideAlerts();
+            
+            // Reset dates to defaults
+            initializeForm();
+        }
+        
+        // Helper functions
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successAlert.style.display = 'flex';
+            errorAlert.style.display = 'none';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'flex';
+            successAlert.style.display = 'none';
+        }
+        
+        function hideAlerts() {
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'none';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric',
+                month: 'short', 
+                day: 'numeric'
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Event Listeners
+        resetBtn.addEventListener('click', resetForm);
+        
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Bill amount validation
+        billAmount.addEventListener('input', function() {
+            // Allow only numbers and decimal point
+            this.value = this.value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const decimalCount = (this.value.match(/\./g) || []).length;
+            if (decimalCount > 1) {
+                this.value = this.value.substring(0, this.value.lastIndexOf('.'));
+            }
+            
+            // Limit to 2 decimal places
+            if (this.value.includes('.')) {
+                const parts = this.value.split('.');
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                    this.value = parts.join('.');
+                }
+            }
+        });
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            // Update clock immediately and every second
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Initialize form
+            initializeForm();
+            
+            // Load data
+            loadParties();
+            loadTodayEntries();
+            
+            // Check if user is logged in (optional)
+            const isLoggedIn = sessionStorage.getItem('phm_admin');
+            if (!isLoggedIn) {
+                alert('Please login first');
+                window.location.href = 'index.html';
+                return;
+            }
+        });
+        
+        // Prevent past dates for dateField
+        dateField.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate > today) {
+                alert('Cannot select future dates');
+                this.value = today.toISOString().split('T')[0];
+            }
+        });
+        
+        // Auto-save draft
+        let autoSaveTimer;
+        const formFields = [dateField, billNo, partyId, billAmount, softwareNo];
+        
+        formFields.forEach(field => {
+            field.addEventListener('input', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => {
+                    // Save form data to localStorage
+                    const formData = {
+                        date: dateField.value,
+                        bill_no: billNo.value,
+                        party_id: partyId.value,
+                        bill_amount: billAmount.value,
+                        software_no: softwareNo.value
+                    };
+                    localStorage.setItem('phm_entry_draft', JSON.stringify(formData));
+                }, 1000);
+            });
+        });
+        
+        // Load draft on page load
+        window.addEventListener('load', function() {
+            const draft = localStorage.getItem('phm_entry_draft');
+            if (draft && !entryId.value) {
+                try {
+                    const formData = JSON.parse(draft);
+                    if (confirm('You have unsaved entry data. Would you like to restore it?')) {
+                        dateField.value = formData.date || today;
+                        billNo.value = formData.bill_no || '';
+                        partyId.value = formData.party_id || '';
+                        billAmount.value = formData.bill_amount || '';
+                        softwareNo.value = formData.software_no || '';
+                    } else {
+                        localStorage.removeItem('phm_entry_draft');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('phm_entry_draft');
+                }
+            }
+        });
+        
+        // Clear draft on successful save
+        entryForm.addEventListener('submit', function() {
+            localStorage.removeItem('phm_entry_draft');
+        });
+        
+        // Export functions for global access
+        window.editEntry = editEntry;
+        window.deleteEntry = deleteEntry;
+    </script>
+</body>
+</html>
