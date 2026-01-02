@@ -1540,9 +1540,10 @@
         // Clear session & local storage
         sessionStorage.clear();
         localStorage.clear();
-window.location.reload();
+
         // Redirect + prevent back button
-        window.location.replace('index.html');
+        window.location.href = "index.html";
+        window.location.reload();
     }
 });
             
