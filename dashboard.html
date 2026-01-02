@@ -1688,11 +1688,18 @@ window.addEventListener("pageshow", function (event) {
         const isLoggedIn = sessionStorage.getItem('phm_admin');
          if (!isLoggedIn) {
             alert('Please login first');
-            window.location.href = 'index.html';
-            return;
+            window.addEventListener("pageshow", function (event) {
+        if (event.persisted || performance.navigation.type === 2) {
+            window.location.replace("index.html");
+        }
+    });
         } 
     });
-    
+    window.history.pushState(null, null, window.location.href);
+window.onpopstate = function () {
+    window.location.replace("index.html");
+};
+            
     // Export functions for global access
     window.startEdit = startEdit;
     window.saveEntry = saveEntry;
