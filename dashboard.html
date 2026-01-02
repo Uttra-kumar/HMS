@@ -1534,14 +1534,23 @@
     }
     
     // Event Listeners
-    logoutBtn.addEventListener('click', function() {
-        if (confirm('Are you sure you want to logout?')) {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.reload();
-            window.location.href = 'index.html';
-        }
-    });
+    logoutBtn.addEventListener('click', function () {
+    if (confirm('Are you sure you want to logout?')) {
+
+        // Clear session & local storage
+        sessionStorage.clear();
+        localStorage.clear();
+
+        // Redirect + prevent back button
+        window.location.replace('index.html');
+    }
+});
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+            
     
     applyFiltersBtn.addEventListener('click', function() {
         // Get filter values
