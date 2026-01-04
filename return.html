@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Management | PHM System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header-left h1 {
+            color: #4a00e0;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .time-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4a00e0;
+            margin-bottom: 8px;
+        }
+        
+        /* Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 0, 224, 0.4);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(to right, #8e2de2, #4a00e0);
+            box-shadow: 0 3px 10px rgba(74, 0, 224, 0.3);
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+        
+        .card-title {
+            font-size: 22px;
+            color: #4a00e0;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+        
+        .form-control:focus {
+            border-color: #8e2de2;
+            outline: none;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(142, 45, 226, 0.1);
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a00e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+            padding-right: 45px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #3a00b0, #6e1dc2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 0, 224, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        /* Returns List Card */
+        .list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .returns-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .returns-table th {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .returns-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+        
+        .returns-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+        
+        .returns-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .returns-table tr:hover {
+            background-color: #f8f5ff;
+        }
+        
+        .returns-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .edit-btn:hover {
+            background: #bbdefb;
+            transform: scale(1.1);
+        }
+        
+        .delete-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .delete-btn:hover {
+            background: #ffcdd2;
+            transform: scale(1.1);
+        }
+        
+        /* Messages */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #e8f7ef;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+        
+        .alert-error {
+            background-color: #ffeaea;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-right {
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .list-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header, .form-card, .list-card {
+                padding: 20px 15px;
+            }
+            
+            .card-title {
+                font-size: 20px;
+            }
+            
+            .returns-table th,
+            .returns-table td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+            
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            .time-date {
+                font-size: 16px;
+            }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+        
+        /* Amount Styling */
+        .amount-cell {
+            font-weight: 600;
+            color: #d32f2f;
+        }
+        
+        /* Summary Section */
+        .summary-section {
+            background: #f8f5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 4px solid #4a00e0;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .summary-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .summary-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4a00e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-exchange-alt"></i> Return Management</h1>
+                <p>Manage product returns</p>
+            </div>
+            <div class="header-right">
+                <div class="time-date" id="currentDateTime">
+                    <!-- Real-time clock will be inserted here -->
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-btn" onclick="window.location.href='dashboard.html'">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                    <button class="nav-btn" onclick="window.location.href='makeEntry.html'">
+                        <i class="fas fa-file-invoice"></i> Make Entry
+                    </button>
+                    <button class="nav-btn" onclick="window.location.href='addParty.html'">
+                        <i class="fas fa-file-invoice"></i>Add Party 
+                    </button>
+                        <button class="nav-btn" onclick="window.location.href='settlement.html'">
+                        <i class="fas fa-file-invoice"></i>Settlement 
+                    </button>
+                    <button class="nav-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Return Form -->
+            <div class="form-card">
+                <h2 class="card-title">
+                    <i class="fas fa-plus-circle"></i> New Return
+                </h2>
+                
+                <div class="alert alert-success" id="successAlert">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="successMessage">Return saved successfully!</span>
+                </div>
+                
+                <div class="alert alert-error" id="errorAlert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="errorMessage">Error occurred. Please try again.</span>
+                </div>
+                
+                <form id="returnForm">
+                    <input type="hidden" id="returnId" value="">
+                    
+                    <div class="form-group">
+                        <label for="returnDate"><i class="fas fa-calendar-day"></i> Return Date *</label>
+                        <input type="date" id="returnDate" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="partyId"><i class="fas fa-user-tag"></i> Party Name *</label>
+                        <select id="partyId" class="form-control" required>
+                            <option value="">Select Party</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="billNo"><i class="fas fa-file-invoice"></i> Bill No *</label>
+                        <input type="text" id="billNo" class="form-control" 
+                               placeholder="Enter bill number" required maxlength="50">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="returnAmount"><i class="fas fa-rupee-sign"></i> Return Amount *</label>
+                        <input type="number" id="returnAmount" class="form-control" 
+                               placeholder="0.00" min="0" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i> <span id="submitText">Save Return</span>
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="resetBtn">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Returns List -->
+            <div class="list-card">
+                <div class="list-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list"></i> All Returns
+                    </h2>
+                    <div class="total-info">
+                        Total Returns: <span id="totalReturns">0</span>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="returns-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="15%">Date</th>
+                                <th width="15%">Bill No</th>
+                                <th width="25%">Party</th>
+                                <th width="15%">Amount</th>
+                                <th width="25%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="returnsTableBody">
+                            <!-- Returns will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3>No Returns Found</h3>
+                    <p>Start by adding your first return using the form on the left.</p>
+                </div>
+                
+                <!-- Summary Section -->
+                <div class="summary-section">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-list-ol"></i> Total Returns
+                            </div>
+                            <div class="summary-value" id="totalReturnsCount">0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-rupee-sign"></i> Total Amount
+                            </div>
+                            <div class="summary-value" id="totalReturnsAmount">₹ 0.00</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-calendar-alt"></i> Today's Date
+                            </div>
+                            <div class="summary-value" id="todayDate">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://iydamvrlxtwsnqvflaxq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5ZGFtdnJseHR3c25xdmZsYXhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwOTczMTIsImV4cCI6MjA3MzY3MzMxMn0.Z8m6XGyu9wsN_UJ8EZYr12BRemsO12_U8EEZ9JizQ6w';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // DOM Elements
+        const currentDateTime = document.getElementById('currentDateTime');
+        const todayDate = document.getElementById('todayDate');
+        const returnForm = document.getElementById('returnForm');
+        const returnId = document.getElementById('returnId');
+        const returnDate = document.getElementById('returnDate');
+        const partyId = document.getElementById('partyId');
+        const billNo = document.getElementById('billNo');
+        const returnAmount = document.getElementById('returnAmount');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resetBtn = document.getElementById('resetBtn');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const returnsTableBody = document.getElementById('returnsTableBody');
+        const totalReturns = document.getElementById('totalReturns');
+        const totalReturnsCount = document.getElementById('totalReturnsCount');
+        const totalReturnsAmount = document.getElementById('totalReturnsAmount');
+        const emptyState = document.getElementById('emptyState');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // State variables
+        let allReturns = [];
+        let allParties = [];
+        
+        // Initialize real-time clock
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            };
+            
+            const dateStr = now.toLocaleDateString('en-US', dateOptions);
+            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+            
+            currentDateTime.innerHTML = `
+                <i class="far fa-calendar-alt"></i> ${dateStr}<br>
+                <i class="far fa-clock"></i> ${timeStr}
+            `;
+            
+            // Update today's date in summary
+            todayDate.textContent = now.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        
+        // Initialize form with default date
+        function initializeForm() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            returnDate.value = today;
+            returnDate.max = today;
+        }
+        
+        // Load parties for dropdown
+        async function loadParties() {
+            try {
+                const { data, error } = await supabase
+                    .from('phmparty')
+                    .select('id, party_name')
+                    .order('party_name', { ascending: true });
+                
+                if (error) throw error;
+                
+                allParties = data || [];
+                
+                // Clear existing options except the first one
+                while (partyId.options.length > 1) {
+                    partyId.remove(1);
+                }
+                
+                // Add party options
+                allParties.forEach(party => {
+                    const option = document.createElement('option');
+                    option.value = party.id;
+                    option.textContent = party.party_name;
+                    partyId.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading parties:', error);
+                showError('Failed to load party list');
+            }
+        }
+        
+        // Load all returns
+        async function loadReturns() {
+            try {
+                // Load returns
+                const { data: returns, error: returnsError } = await supabase
+                    .from('phmreturn')
+                    .select('*')
+                    .order('return_date', { ascending: false });
+                
+                if (returnsError) throw returnsError;
+                
+                // Manual join with parties
+                allReturns = returns.map(ret => {
+                    const party = allParties.find(p => p.id === ret.party_id);
+                    return {
+                        ...ret,
+                        party_name: party ? party.party_name : 'N/A'
+                    };
+                });
+                
+                displayReturns();
+                updateSummary();
+                
+            } catch (error) {
+                console.error('Error loading returns:', error);
+                showError('Failed to load returns');
+                allReturns = [];
+                displayReturns();
+            }
+        }
+        
+        // Display returns in table
+        function displayReturns() {
+            if (allReturns.length === 0) {
+                emptyState.style.display = 'block';
+                returnsTableBody.innerHTML = '';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            allReturns.forEach((ret, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${formatDate(ret.return_date)}</td>
+                        <td>${escapeHtml(ret.bill_no || '')}</td>
+                        <td>${escapeHtml(ret.party_name || 'N/A')}</td>
+                        <td class="amount-cell">₹ ${parseFloat(ret.return_amount || 0).toFixed(2)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit-btn" onclick="editReturn('${ret.id}')" 
+                                        title="Edit Return">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteReturn('${ret.id}')" 
+                                        title="Delete Return">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            returnsTableBody.innerHTML = html;
+        }
+        
+        // Update summary statistics
+        function updateSummary() {
+            const totalCount = allReturns.length;
+            const totalAmount = allReturns.reduce((sum, ret) => {
+                return sum + parseFloat(ret.return_amount || 0);
+            }, 0);
+            
+            totalReturns.textContent = totalCount;
+            totalReturnsCount.textContent = totalCount;
+            totalReturnsAmount.textContent = `₹ ${totalAmount.toFixed(2)}`;
+        }
+        
+        // Form submission handler
+        returnForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validation
+            if (!returnDate.value) {
+                showError('Please select return date');
+                returnDate.focus();
+                return;
+            }
+            
+            if (!partyId.value) {
+                showError('Please select a party');
+                partyId.focus();
+                return;
+            }
+            
+            if (!billNo.value.trim()) {
+                showError('Please enter bill number');
+                billNo.focus();
+                return;
+            }
+            
+            if (!returnAmount.value || parseFloat(returnAmount.value) <= 0) {
+                showError('Please enter a valid return amount');
+                returnAmount.focus();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = returnId.value ? 'Updating...' : 'Saving...';
+            loadingSpinner.style.display = 'block';
+            hideAlerts();
+            
+            try {
+                const returnData = {
+                    return_date: returnDate.value,
+                    party_id: partyId.value,
+                    bill_no: billNo.value.trim(),
+                    return_amount: parseFloat(returnAmount.value).toFixed(2)
+                };
+                
+                if (returnId.value) {
+                    // Update existing return
+                    const { error } = await supabase
+                        .from('phmreturn')
+                        .update(returnData)
+                        .eq('id', returnId.value);
+                    
+                    if (error) throw error;
+                    alert('Update Successfully')
+                    showSuccess('Return updated successfully!');
+                } else {
+                    // Insert new return
+                    const { error } = await supabase
+                        .from('phmreturn')
+                        .insert([returnData]);
+                    
+                    if (error) throw error;
+                    
+                    showSuccess('Return saved successfully!');
+                }
+                
+                // Reset form and reload returns
+                resetForm();
+                loadReturns();
+                
+            } catch (error) {
+                console.error('Error saving return:', error);
+                showError(returnId.value ? 'Failed to update return' : 'Failed to save return');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = returnId.value ? 'Update Return' : 'Save Return';
+                loadingSpinner.style.display = 'none';
+            }
+        });
+        
+        // Edit return function
+        async function editReturn(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('phmreturn')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    // Fill form with return data
+                    returnId.value = data.id;
+                    returnDate.value = data.return_date;
+                    partyId.value = data.party_id || '';
+                    billNo.value = data.bill_no || '';
+                    returnAmount.value = data.return_amount || '';
+                    
+                    // Update button text
+                    submitText.textContent = 'Update Return';
+                    
+                    // Scroll to form
+                    returnDate.focus();
+                    
+                    showSuccess('Return loaded for editing');
+                }
+            } catch (error) {
+                console.error('Error loading return for edit:', error);
+                showError('Failed to load return details');
+            }
+        }
+        
+        // Delete return function
+        async function deleteReturn(id) {
+            if (!confirm('Are you sure you want to delete this return? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('phmreturn')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showSuccess('Return deleted successfully!');
+                loadReturns();
+                
+            } catch (error) {
+                console.error('Error deleting return:', error);
+                showError('Failed to delete return');
+            }
+        }
+        
+        // Reset form function
+        function resetForm() {
+            returnId.value = '';
+            returnForm.reset();
+            submitText.textContent = 'Save Return';
+            hideAlerts();
+            
+            // Reset date to default
+            initializeForm();
+        }
+        
+        // Helper functions
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successAlert.style.display = 'flex';
+            errorAlert.style.display = 'none';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'flex';
+            successAlert.style.display = 'none';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+        
+        function hideAlerts() {
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'none';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric',
+                month: 'short', 
+                day: 'numeric'
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Event Listeners
+        resetBtn.addEventListener('click', resetForm);
+        
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Amount validation
+        returnAmount.addEventListener('input', function() {
+            // Allow only numbers and decimal point
+            this.value = this.value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const decimalCount = (this.value.match(/\./g) || []).length;
+            if (decimalCount > 1) {
+                this.value = this.value.substring(0, this.value.lastIndexOf('.'));
+            }
+            
+            // Limit to 2 decimal places
+            if (this.value.includes('.')) {
+                const parts = this.value.split('.');
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                    this.value = parts.join('.');
+                }
+            }
+        });
+        
+        // Prevent future dates
+        returnDate.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate > today) {
+                alert('Cannot select future dates');
+                this.value = today.toISOString().split('T')[0];
+            }
+        });
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            // Update clock immediately and every second
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Initialize form
+            initializeForm();
+            
+            // Load data
+            loadParties().then(() => {
+                loadReturns();
+            });
+            
+            // Check if user is logged in
+            const isLoggedIn = sessionStorage.getItem('phm_admin');
+            /*if (!isLoggedIn) {
+                alert('Please login first');
+                window.location.href = 'index.html';
+                return;
+            }*/
+        });
+        
+        // Export functions for global access
+        window.editReturn = editReturn;
+        window.deleteReturn = deleteReturn;
+    </script>
+</body>
+</html>
